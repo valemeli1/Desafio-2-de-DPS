@@ -1,13 +1,12 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { useState } from 'react';
-import { AppProvider, Ctx } from './context/AppContext';
+import { StyleSheet, View } from 'react-native';
+import { AppProvider } from './context/AppContext';
 import CartScreen from './screens/CartScreen';
 import HistoryScreen from './screens/HistoryScreen';
 import LoginScreen from './screens/LoginScreen';
 import MenuScreen from './screens/MenuScreen';
-
 
 const Stk = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -23,26 +22,24 @@ function Tabs() {
 }
 
 export default function App() {
-  const [cart, setCart] = useState([]);
-
-  return (
-    <Ctx.Provider value={{ cart, setCart }}>
-      <NavigationContainer>
-        <Stk.Navigator screenOptions={{ headerShown: false }}>
-          <Stk.Screen name="Login" component={LoginScreen} />
-          <Stk.Screen name="Main" component={Tabs} />
-        </Stk.Navigator>
-      </NavigationContainer>
-    </Ctx.Provider>
-  );
-}
-
-export default function App() {
   return (
     <AppProvider>
       <View style={styles.container}>
-        {/* ... Navegación existente */}
+        <NavigationContainer>
+          <Stk.Navigator screenOptions={{ headerShown: false }}>
+            <Stk.Screen name="Login" component={LoginScreen} />
+            <Stk.Screen name="Main" component={Tabs} />
+          </Stk.Navigator>
+        </NavigationContainer>
       </View>
     </AppProvider>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    height: '100%',
+    width: '100%',
+  },
+});
