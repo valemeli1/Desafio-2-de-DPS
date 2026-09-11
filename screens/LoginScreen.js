@@ -69,6 +69,8 @@ export default function LoginScreen({ navigation }) {
         onPress={() => { 
           setIsRegistering(!isRegistering); 
           setErrorMsg(''); 
+          setUsername('');
+          setPassword('');
         }}
       >
         <Text style={styles.switchText}>

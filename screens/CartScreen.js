@@ -1,20 +1,26 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useContext } from 'react';
-import { Alert, Button, FlatList, StyleSheet, Text, View } from 'react-native';
+import { Alert, FlatList, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Ctx } from '../context/AppContext';
 
 export default function CartScreen({ navigation }) {
-  const { cart, setCart } = useContext(Ctx);
+  const { cart, setCart, currentUser, logoutUser } = useContext(Ctx);
 
-  const sub = cart.reduce((s, x) => s + x.price * x.quantity, 0);
+  const sub = cart.reduce((s, x) => s + (Number(x.price) || 0) * (Number(x.quantity) || 1), 0);
   const iva = sub * 0.13;
   const tot = sub + iva;
+
+  const handleLogout = () => {
+    logoutUser();
+    navigation.replace('Login');
+  };
 
   const save = async () => {
     try {
       const obj = {
         id: Date.now().toString(),
         date: new Date().toLocaleString(),
+        user: currentUser || 'Invitado',
         items: cart,
         sub: sub,
         iva: iva,
@@ -26,49 +32,87 @@ export default function CartScreen({ navigation }) {
       
       await AsyncStorage.setItem('@orders', JSON.stringify(arr));
       setCart([]);
-      Alert.alert('Éxito', 'Orden guardada');
+      
+      if (Platform.OS === 'web') {
+        window.alert('¡Orden guardada y confirmada con éxito!');
+      } else {
+        Alert.alert('Éxito', '¡Orden guardada y confirmada con éxito!');
+      }
+      
       navigation.navigate('Historial');
     } catch (e) {
-      Alert.alert('Error', 'No se pudo guardar');
+      console.error(e);
+      if (Platform.OS === 'web') {
+        window.alert('No se pudo guardar la orden');
+      } else {
+        Alert.alert('Error', 'No se pudo guardar la orden');
+      }
     }
   };
 
   const confirmOrder = () => {
-    if (cart.length === 0) {
-      Alert.alert('Error', 'Carrito vacío');
+    if (!cart || cart.length === 0) {
+      if (Platform.OS === 'web') {
+        window.alert('El carrito está vacío');
+      } else {
+        Alert.alert('Atención', 'El carrito está vacío');
+      }
       return;
     }
-    Alert.alert(
-      'Confirmar',
-      `Sub: $${sub.toFixed(2)}\nIVA: $${iva.toFixed(2)}\nTotal: $${tot.toFixed(2)}\n\n¿Enviar orden?`,
-      [
-        { text: 'No', style: 'cancel' },
-        { text: 'Sí', onPress: save }
-      ]
-    );
+
+    // Si corre en la Web, usamos window.confirm nativo del navegador
+    if (Platform.OS === 'web') {
+      const resp = window.confirm(`Sub: $${sub.toFixed(2)}\nIVA: $${iva.toFixed(2)}\nTotal: $${tot.toFixed(2)}\n\n¿Enviar orden?`);
+      if (resp) {
+        save();
+      }
+    } else {
+      // Comportamiento nativo para dispositivos móviles (Android / iOS)
+      Alert.alert(
+        'Confirmar Orden',
+        `Sub: $${sub.toFixed(2)}\nIVA: $${iva.toFixed(2)}\nTotal: $${tot.toFixed(2)}\n\n¿Enviar orden?`,
+        [
+          { text: 'No', style: 'cancel' },
+          { text: 'Sí', onPress: () => save() }
+        ]
+      );
+    }
   };
 
   return (
     <View style={st.box}>
-      <FlatList
-        data={cart}
-        keyExtractor={x => x.id}
-        ListEmptyComponent={<Text style={st.emp}>Sin productos en la orden</Text>}
-        renderItem={({ item }) => (
-          <View style={st.card}>
-            <View>
-              <Text style={st.name}>{item.quantity}x {item.name}</Text>
-              <Text style={st.pnt}>Unit: ${item.price.toFixed(2)}</Text>
+      <View style={st.userBar}>
+        <Text style={st.welcomeText}>👤 Hola, <Text style={st.username}>{currentUser || 'Invitado'}</Text></Text>
+        <TouchableOpacity style={st.logoutButton} onPress={handleLogout}>
+          <Text style={st.logoutText}>Cambiar cuenta</Text>
+        </TouchableOpacity>
+      </View>
+
+      <View style={{ flex: 1 }}>
+        <FlatList
+          data={cart}
+          keyExtractor={(item, index) => item.id ? item.id.toString() : index.toString()}
+          ListEmptyComponent={<Text style={st.emp}>Sin productos en la orden</Text>}
+          renderItem={({ item }) => (
+            <View style={st.card}>
+              <View>
+                <Text style={st.name}>{item.quantity || 1}x {item.name}</Text>
+                <Text style={st.pnt}>Unit: ${(Number(item.price) || 0).toFixed(2)}</Text>
+              </View>
+              <Text style={st.sub}>${((Number(item.price) || 0) * (Number(item.quantity) || 1)).toFixed(2)}</Text>
             </View>
-            <Text style={st.sub}>${(item.price * item.quantity).toFixed(2)}</Text>
-          </View>
-        )}
-      />
+          )}
+        />
+      </View>
+
       <View style={st.ft}>
         <View style={st.rw}><Text style={st.ftxt}>Subtotal:</Text><Text style={st.ftxt}>${sub.toFixed(2)}</Text></View>
         <View style={st.rw}><Text style={st.ftxt}>IVA (13%):</Text><Text style={st.ftxt}>${iva.toFixed(2)}</Text></View>
         <View style={[st.rw, st.tots]}><Text style={st.ttxt}>Total:</Text><Text style={st.ttxt}>${tot.toFixed(2)}</Text></View>
-        <Button title="Confirmar Orden" onPress={confirmOrder} color="#27ae60" />
+        
+        <TouchableOpacity style={st.confirmButton} onPress={confirmOrder} activeOpacity={0.7}>
+          <Text style={st.confirmButtonText}>Confirmar Orden</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -76,6 +120,11 @@ export default function CartScreen({ navigation }) {
 
 const st = StyleSheet.create({
   box: { flex: 1, padding: 15, backgroundColor: '#121212' },
+  userBar: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#1e1e1e', padding: 10, borderRadius: 8, marginBottom: 12 },
+  welcomeText: { color: '#fff', fontSize: 13 },
+  username: { fontWeight: 'bold', color: '#f59e0b' },
+  logoutButton: { backgroundColor: '#7f1d1d', paddingHorizontal: 8, paddingVertical: 5, borderRadius: 6 },
+  logoutText: { color: '#fca5a5', fontSize: 11, fontWeight: 'bold' },
   emp: { textAlign: 'center', marginTop: 40, color: '#888', fontSize: 16 },
   card: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#1e1e1e', padding: 12, marginBottom: 10, borderRadius: 8 },
   name: { fontSize: 15, fontWeight: 'bold', color: '#fff' },
@@ -85,5 +134,7 @@ const st = StyleSheet.create({
   rw: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 5 },
   ftxt: { color: '#ccc', fontSize: 14 },
   tots: { borderTopWidth: 1, borderColor: '#444', marginTop: 8, paddingTop: 8 },
-  ttxt: { color: '#fff', fontSize: 18, fontWeight: 'bold' }
+  ttxt: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
+  confirmButton: { backgroundColor: '#27ae60', padding: 16, borderRadius: 8, alignItems: 'center', marginTop: 12 },
+  confirmButtonText: { color: '#fff', fontWeight: 'bold', fontSize: 16 }
 });
