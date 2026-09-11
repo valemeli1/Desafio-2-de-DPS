@@ -2,7 +2,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useState } from 'react';
-import { Ctx } from './context/AppContext';
+import { AppProvider, Ctx } from './context/AppContext';
 import CartScreen from './screens/CartScreen';
 import HistoryScreen from './screens/HistoryScreen';
 import LoginScreen from './screens/LoginScreen';
@@ -34,5 +34,15 @@ export default function App() {
         </Stk.Navigator>
       </NavigationContainer>
     </Ctx.Provider>
+  );
+}
+
+export default function App() {
+  return (
+    <AppProvider>
+      <View style={styles.container}>
+        {/* ... Navegación existente */}
+      </View>
+    </AppProvider>
   );
 }
