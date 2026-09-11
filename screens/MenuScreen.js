@@ -1,91 +1,71 @@
 import { useContext, useState } from 'react';
-import { Alert, FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Ctx } from '../context/AppContext';
 
-const DATA = [
-  { id: '1', name: 'Alitas BBQ Picantes', price: 7.50, type: 'comida', img: '' },
-  { id: '2', name: 'Papas con Cheddar', price: 5.00, type: 'comida', img: '' },
-  { id: '3', name: 'Burger Doble Smash', price: 8.50, type: 'comida', img: '' },
-  { id: '4', name: 'Nachos con Guacamole', price: 6.50, type: 'comida', img: '' },
-  { id: '5', name: 'Dedos de Queso', price: 4.50, type: 'comida', img: '' },
-  { id: '6', name: 'Salchipapas', price: 4.00, type: 'comida', img: '' },
-  { id: '7', name: 'Minitaquitos de Birria', price: 6.00, type: 'comida', img: '' },
-  { id: '8', name: 'Aros de Cebolla', price: 3.50, type: 'comida', img: '' },
-  { id: '9', name: 'Hot Dog con Papas', price: 5.00, type: 'comida', img: '' },
-  { id: '10', name: 'Boneless Búfalo', price: 7.00, type: 'comida', img: '' },
-  { id: '11', name: 'Mojito Cubano', price: 5.50, type: 'bebida', img: '' },
-  { id: '12', name: 'Margarita Azul', price: 6.00, type: 'bebida', img: '' },
-  { id: '13', name: 'Cerveza IPA', price: 4.50, type: 'bebida', img: '' },
-  { id: '14', name: 'Piña Colada', price: 6.00, type: 'bebida', img: '' },
-  { id: '15', name: 'Tequila Sunrise', price: 5.00, type: 'bebida', img: '' },
-];
-
 export default function MenuScreen() {
-  const { cart, setCart } = useContext(Ctx);
-  const [tab, setTab] = useState('comida');
+  const { products, addToCart, errorMsg } = useContext(Ctx);
+  const [tab, setTab] = useState('Alimentos');
   const [qtys, setQtys] = useState({});
 
-  const list = DATA.filter(x => x.type === tab);
+  // Filtra según la categoría del contexto ('Alimentos' o 'Bebidas')
+  const list = products.filter(x => x.category === tab);
 
   const chgQty = (id, val) => {
     setQtys(prev => {
       const cur = prev[id] || 1;
       const nxt = cur + val;
-      if (nxt < 1) {
-        Alert.alert('Aviso', 'Mínimo 1');
-        return prev;
-      }
-      if (nxt > 20) {
-        Alert.alert('Aviso', 'Máximo 20');
-        return prev;
+      if (nxt < 1 || nxt > 20) {
+        return prev; // Respeta los límites de 1 a 20
       }
       return { ...prev, [id]: nxt };
     });
   };
 
-  const addTocart = (item) => {
+  const handleAddTocart = (item) => {
     const q = qtys[item.id] || 1;
-    setCart(prev => {
-      const ex = prev.find(p => p.id === item.id);
-      if (ex) {
-        if (ex.quantity + q > 20) {
-          Alert.alert('Error', 'Límite excedido');
-          return prev;
-        }
-        return prev.map(p => p.id === item.id ? { ...p, quantity: p.quantity + q } : p);
-      }
-      return [...prev, { ...item, quantity: q }];
-    });
-    Alert.alert('Ok', `Agregado: ${q}x ${item.name}`);
+    addToCart(item, q.toString());
   };
 
   return (
     <View style={st.box}>
       <View style={st.tabs}>
-        <TouchableOpacity style={[st.btnT, tab === 'comida' && st.act]} onPress={() => setTab('comida')}>
+        <TouchableOpacity style={[st.btnT, tab === 'Alimentos' && st.act]} onPress={() => setTab('Alimentos')}>
           <Text style={st.txtT}>Comida</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={[st.btnT, tab === 'bebida' && st.act]} onPress={() => setTab('bebida')}>
+        <TouchableOpacity style={[st.btnT, tab === 'Bebidas' && st.act]} onPress={() => setTab('Bebidas')}>
           <Text style={st.txtT}>Tragos</Text>
         </TouchableOpacity>
       </View>
+
+      {/* Validación 7: Mensaje de error visual directo en pantalla */}
+      {errorMsg ? (
+        <View style={st.errorBox}>
+          <Text style={st.errorText}>⚠️ {errorMsg}</Text>
+        </View>
+      ) : null}
 
       <FlatList
         data={list}
         keyExtractor={x => x.id}
         renderItem={({ item }) => (
           <View style={st.card}>
-            <Image source={{ uri: item.img }} style={st.img} />
+            <View style={st.emojiContainer}>
+              <Text style={st.emojiText}>{item.image}</Text>
+            </View>
             <View style={st.info}>
               <Text style={st.name}>{item.name}</Text>
               <Text style={st.price}>${item.price.toFixed(2)}</Text>
               <View style={st.row}>
                 <View style={st.cnt}>
-                  <TouchableOpacity onPress={() => chgQty(item.id, -1)} style={st.bmin}><Text style={st.btxt}>-</Text></TouchableOpacity>
+                  <TouchableOpacity onPress={() => chgQty(item.id, -1)} style={st.bmin}>
+                    <Text style={st.btxt}>-</Text>
+                  </TouchableOpacity>
                   <Text style={st.qtxt}>{qtys[item.id] || 1}</Text>
-                  <TouchableOpacity onPress={() => chgQty(item.id, 1)} style={st.bmin}><Text style={st.btxt}>+</Text></TouchableOpacity>
+                  <TouchableOpacity onPress={() => chgQty(item.id, 1)} style={st.bmin}>
+                    <Text style={st.btxt}>+</Text>
+                  </TouchableOpacity>
                 </View>
-                <TouchableOpacity style={st.add} onPress={() => addTocart(item)}>
+                <TouchableOpacity style={st.add} onPress={() => handleAddTocart(item)}>
                   <Text style={st.atxt}>Agregar</Text>
                 </TouchableOpacity>
               </View>
@@ -98,17 +78,20 @@ export default function MenuScreen() {
 }
 
 const st = StyleSheet.create({
-  box: { flex: 1, backgroundColor: '#121212' },
+  box: { flex: 1, backgroundColor: '#121212', paddingBottom: 10 },
   tabs: { flexDirection: 'row', justifyContent: 'center', backgroundColor: '#1e1e1e', paddingVertical: 12 },
   btnT: { paddingVertical: 8, paddingHorizontal: 20, borderRadius: 20, marginHorizontal: 5, backgroundColor: '#2c2c2c' },
   act: { backgroundColor: '#e67e22' },
   txtT: { fontWeight: 'bold', color: '#fff' },
-  card: { flexDirection: 'row', backgroundColor: '#1e1e1e', marginHorizontal: 15, marginVertical: 8, padding: 10, borderRadius: 10 },
-  img: { width: 80, height: 80, borderRadius: 8 },
+  errorBox: { backgroundColor: '#7f1d1d', marginHorizontal: 15, marginTop: 10, padding: 10, borderRadius: 8 },
+  errorText: { color: '#fca5a5', fontWeight: 'bold', textAlign: 'center', fontSize: 13 },
+  card: { flexDirection: 'row', backgroundColor: '#1e1e1e', marginHorizontal: 15, marginVertical: 8, padding: 10, borderRadius: 10, alignItems: 'center' },
+  emojiContainer: { width: 60, height: 60, justifyContent: 'center', alignItems: 'center', backgroundColor: '#2a2a2a', borderRadius: 8 },
+  emojiText: { fontSize: 30 },
   info: { flex: 1, marginLeft: 12, justifyContent: 'space-between' },
   name: { fontSize: 16, fontWeight: 'bold', color: '#fff' },
-  price: { color: '#2ecc71', fontSize: 15, fontWeight: '600' },
-  row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  price: { color: '#2ecc71', fontSize: 15, fontWeight: '600', marginVertical: 4 },
+  row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 },
   cnt: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#2c2c2c', borderRadius: 5, padding: 2 },
   bmin: { paddingHorizontal: 10, paddingVertical: 2 },
   btxt: { fontSize: 16, fontWeight: 'bold', color: '#fff' },
