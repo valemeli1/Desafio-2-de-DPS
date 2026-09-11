@@ -1,6 +1,6 @@
 import { useContext, useState } from 'react';
 import { Alert, FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { Ctx } from '../App';
+import { Ctx } from '../context/AppContext';
 
 const DATA = [
   { id: '1', name: 'Alitas BBQ Picantes', price: 7.50, type: 'comida', img: '' },

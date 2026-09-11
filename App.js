@@ -1,13 +1,14 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { createContext, useState } from 'react';
+import { useState } from 'react';
+import { Ctx } from './context/AppContext';
 import CartScreen from './screens/CartScreen';
 import HistoryScreen from './screens/HistoryScreen';
 import LoginScreen from './screens/LoginScreen';
 import MenuScreen from './screens/MenuScreen';
 
-export const Ctx = createContext();
+
 const Stk = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 

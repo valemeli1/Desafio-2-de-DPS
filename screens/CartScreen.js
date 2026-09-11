@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useContext } from 'react';
 import { Alert, Button, FlatList, StyleSheet, Text, View } from 'react-native';
-import { Ctx } from '../App';
+import { Ctx } from '../context/AppContext';
 
 export default function CartScreen({ navigation }) {
   const { cart, setCart } = useContext(Ctx);

@@ -1,47 +1,91 @@
 import { useState } from 'react';
-import { Alert, Button, StyleSheet, Text, TextInput, View } from 'react-native';
+import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 export default function LoginScreen({ navigation }) {
-  const [usr, setUsr] = useState('');
-  const [pwd, setPwd] = useState('');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
 
-  const loginFn = () => {
-    if (!usr.trim() || !pwd.trim()) {
-      Alert.alert('Error', 'Campos vacíos');
-      return;
-    }
-    if (usr === 'admin' && pwd === '1234') {
+  const handleLogin = () => {
+    // Validación sencilla para entrar al menú
+    if (username.trim() !== '' && password.trim() !== '') {
       navigation.replace('Main');
     } else {
-      Alert.alert('Error', 'Datos incorrectos');
+      alert('Por favor ingresa usuario y contraseña');
     }
   };
 
   return (
-    <View style={st.box}>
-      <Text style={st.title}>Buhitos Bar</Text>
-      <TextInput 
-        style={st.inp} 
-        placeholder="Usuario" 
-        placeholderTextColor="#888" 
-        value={usr} 
-        onChangeText={setUsr} 
+    <View style={styles.container}>
+      <Text style={styles.title}>🦉 Buhitos Bar</Text>
+      <Text style={styles.subtitle}>Inicia sesión para continuar</Text>
+
+      <TextInput
+        style={styles.input}
+        placeholder="Usuario"
+        placeholderTextColor="#888"
+        value={username}
+        onChangeText={setUsername}
       />
-      <TextInput 
-        style={st.inp} 
-        placeholder="Contraseña" 
-        placeholderTextColor="#888" 
-        value={pwd} 
-        onChangeText={setPwd} 
-        secureTextEntry 
+
+      <TextInput
+        style={styles.input}
+        placeholder="Contraseña"
+        placeholderTextColor="#888"
+        secureTextEntry
+        value={password}
+        onChangeText={setPassword}
       />
-      <Button title="Entrar" onPress={loginFn} color="#d35400" />
+
+      <TouchableOpacity style={styles.button} onPress={handleLogin}>
+        <Text style={styles.buttonText}>Ingresar</Text>
+      </TouchableOpacity>
     </View>
   );
 }
 
-const st = StyleSheet.create({
-  box: { flex: 1, justifyContent: 'center', padding: 20, backgroundColor: '#121212' },
-  title: { fontSize: 24, fontWeight: 'bold', textAlign: 'center', marginBottom: 20, color: '#fff' },
-  inp: { borderWidth: 1, borderColor: '#444', backgroundColor: '#1e1e1e', color: '#fff', padding: 10, marginBottom: 15, borderRadius: 5 }
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#121212',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  title: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#aaa',
+    marginBottom: 30,
+  },
+  input: {
+    width: '100%',
+    maxWidth: 400,
+    backgroundColor: '#1e1e1e',
+    color: '#fff',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 8,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#333',
+  },
+  button: {
+    width: '100%',
+    maxWidth: 400,
+    backgroundColor: '#f59e0b',
+    paddingVertical: 14,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  buttonText: {
+    color: '#121212',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
 });
