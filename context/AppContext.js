@@ -7,14 +7,17 @@ export function AppProvider({ children }) {
   const [history, setHistory] = useState([]);
   const [errorMsg, setErrorMsg] = useState('');
   
-  // Estado para las notificaciones flotantes (Toast)
+  // Nuevos estados para el tipo de orden y método de pago
+  const [orderType, setOrderType] = useState('Para comer aquí'); // 'Para comer aquí' o 'Para llevar'
+  const [paymentMethod, setPaymentMethod] = useState('Mostrador'); // 'Mostrador' o 'Tarjeta'
+
   const [toastMessage, setToastMessage] = useState(null);
 
   const showToast = (msg) => {
     setToastMessage(msg);
     setTimeout(() => {
       setToastMessage(null);
-    }, 3000); // Se oculta automáticamente después de 3 segundos
+    }, 3000);
   };
   
   const [users, setUsers] = useState([
@@ -39,10 +42,8 @@ export function AppProvider({ children }) {
     { id: '15', name: 'Tequila Sunrise', price: 5.00, category: 'Bebidas', image: '🌅' },
   ];
 
-  // Registro con verificación estricta de datos correctos
   const registerUser = (usernameRaw, passwordRaw) => {
     setErrorMsg('');
-    
     const username = usernameRaw ? usernameRaw.trim() : '';
     const password = passwordRaw ? passwordRaw.trim() : '';
 
@@ -50,17 +51,14 @@ export function AppProvider({ children }) {
       setErrorMsg('El usuario y la contraseña no pueden estar vacíos.');
       return false;
     }
-
     if (username.length < 3) {
       setErrorMsg('El usuario debe tener al menos 3 caracteres.');
       return false;
     }
-
     if (password.length < 4) {
       setErrorMsg('La contraseña debe tener al menos 4 caracteres.');
       return false;
     }
-
     if (/\s/.test(username)) {
       setErrorMsg('El nombre de usuario no debe contener espacios en blanco.');
       return false;
@@ -77,10 +75,8 @@ export function AppProvider({ children }) {
     return true;
   };
 
-  // Login con verificación estricta de datos correctos
   const loginUser = (usernameRaw, passwordRaw) => {
     setErrorMsg('');
-
     const username = usernameRaw ? usernameRaw.trim() : '';
     const password = passwordRaw ? passwordRaw.trim() : '';
 
@@ -135,33 +131,12 @@ export function AppProvider({ children }) {
   const taxIVA = subtotalGeneral * 0.13;
   const totalFinal = subtotalGeneral + taxIVA;
 
-  const confirmOrder = () => {
-    if (cart.length === 0) {
-      setErrorMsg('No se puede confirmar una orden vacía.');
-      return false;
-    }
-
-    const newOrder = {
-      id: Date.now().toString(),
-      date: new Date().toLocaleString(),
-      items: [...cart],
-      subtotal: subtotalGeneral,
-      iva: taxIVA,
-      total: totalFinal,
-    };
-
-    setHistory(prev => [newOrder, ...prev]);
-    setCart([]);
-    setErrorMsg('');
-    showToast('¡Orden confirmada con éxito!');
-    return true;
-  };
-
   return (
     <Ctx.Provider value={{ 
-      products, cart, setCart, history, addToCart, confirmOrder, 
+      products, cart, setCart, history, setHistory, addToCart, 
       errorMsg, setErrorMsg, subtotalGeneral, taxIVA, totalFinal, 
-      registerUser, loginUser, toastMessage, showToast 
+      registerUser, loginUser, toastMessage, showToast,
+      orderType, setOrderType, paymentMethod, setPaymentMethod 
     }}>
       {children}
     </Ctx.Provider>
