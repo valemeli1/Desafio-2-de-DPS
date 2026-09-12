@@ -7,6 +7,16 @@ export function AppProvider({ children }) {
   const [history, setHistory] = useState([]);
   const [errorMsg, setErrorMsg] = useState('');
   
+  // Estado para las notificaciones flotantes (Toast)
+  const [toastMessage, setToastMessage] = useState(null);
+
+  const showToast = (msg) => {
+    setToastMessage(msg);
+    setTimeout(() => {
+      setToastMessage(null);
+    }, 3000); // Se oculta automáticamente después de 3 segundos
+  };
+  
   const [users, setUsers] = useState([
     { username: 'admin', password: '1234' }
   ]);
@@ -36,13 +46,11 @@ export function AppProvider({ children }) {
     const username = usernameRaw ? usernameRaw.trim() : '';
     const password = passwordRaw ? passwordRaw.trim() : '';
 
-    // 1. Verificar campos vacíos o nulos
     if (!username || !password) {
       setErrorMsg('El usuario y la contraseña no pueden estar vacíos.');
       return false;
     }
 
-    // 2. Verificar longitud mínima
     if (username.length < 3) {
       setErrorMsg('El usuario debe tener al menos 3 caracteres.');
       return false;
@@ -53,13 +61,11 @@ export function AppProvider({ children }) {
       return false;
     }
 
-    // 3. Verificar espacios internos en el usuario
     if (/\s/.test(username)) {
       setErrorMsg('El nombre de usuario no debe contener espacios en blanco.');
       return false;
     }
 
-    // 4. Verificar duplicados
     const exists = users.find(u => u.username.toLowerCase() === username.toLowerCase());
     if (exists) {
       setErrorMsg('El nombre de usuario ya está registrado.');
@@ -67,6 +73,7 @@ export function AppProvider({ children }) {
     }
 
     setUsers(prev => [...prev, { username, password }]);
+    showToast('¡Cuenta creada con éxito!');
     return true;
   };
 
@@ -88,6 +95,7 @@ export function AppProvider({ children }) {
       return false;
     }
 
+    showToast(`¡Bienvenido de nuevo, ${username}!`);
     return true;
   };
 
@@ -118,6 +126,8 @@ export function AppProvider({ children }) {
         return [...prevCart, { ...product, quantity: qty }];
       }
     });
+
+    showToast(`¡Agregado al carrito: ${qty}x ${product.name}!`);
     return true;
   };
 
@@ -143,6 +153,7 @@ export function AppProvider({ children }) {
     setHistory(prev => [newOrder, ...prev]);
     setCart([]);
     setErrorMsg('');
+    showToast('¡Orden confirmada con éxito!');
     return true;
   };
 
@@ -150,7 +161,7 @@ export function AppProvider({ children }) {
     <Ctx.Provider value={{ 
       products, cart, setCart, history, addToCart, confirmOrder, 
       errorMsg, setErrorMsg, subtotalGeneral, taxIVA, totalFinal, 
-      registerUser, loginUser 
+      registerUser, loginUser, toastMessage, showToast 
     }}>
       {children}
     </Ctx.Provider>

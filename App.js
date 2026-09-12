@@ -1,8 +1,11 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { useContext } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { AppProvider } from './context/AppContext';
+
+import Toast from './components/Toast';
+import { AppProvider, Ctx } from './context/AppContext';
 import CartScreen from './screens/CartScreen';
 import HistoryScreen from './screens/HistoryScreen';
 import LoginScreen from './screens/LoginScreen';
@@ -21,17 +24,28 @@ function Tabs() {
   );
 }
 
+function MainNavigation() {
+  const { toastMessage } = useContext(Ctx);
+
+  return (
+    <View style={styles.container}>
+      <NavigationContainer>
+        <Stk.Navigator screenOptions={{ headerShown: false }}>
+          <Stk.Screen name="Login" component={LoginScreen} />
+          <Stk.Screen name="Main" component={Tabs} />
+        </Stk.Navigator>
+      </NavigationContainer>
+
+      {/* Notificación flotante global sobre toda la app */}
+      <Toast message={toastMessage} />
+    </View>
+  );
+}
+
 export default function App() {
   return (
     <AppProvider>
-      <View style={styles.container}>
-        <NavigationContainer>
-          <Stk.Navigator screenOptions={{ headerShown: false }}>
-            <Stk.Screen name="Login" component={LoginScreen} />
-            <Stk.Screen name="Main" component={Tabs} />
-          </Stk.Navigator>
-        </NavigationContainer>
-      </View>
+      <MainNavigation />
     </AppProvider>
   );
 }
@@ -39,6 +53,7 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#0d0d0d',
     height: '100%',
     width: '100%',
   },

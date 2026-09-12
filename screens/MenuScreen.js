@@ -3,7 +3,7 @@ import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native
 import { Ctx } from '../context/AppContext';
 
 export default function MenuScreen() {
-  const { products, addToCart, errorMsg } = useContext(Ctx);
+  const { products, addToCart, errorMsg, showToast } = useContext(Ctx);
   const [tab, setTab] = useState('Alimentos');
   const [qtys, setQtys] = useState({});
 
@@ -23,7 +23,12 @@ export default function MenuScreen() {
 
   const handleAddTocart = (item) => {
     const q = qtys[item.id] || 1;
-    addToCart(item, q.toString());
+    const success = addToCart(item, q.toString());
+    
+    // Si la función addToCart se ejecutó con éxito, mostramos el toast flotante
+    if (success) {
+      showToast(`¡Agregado al carrito: ${q}x ${item.name}!`);
+    }
   };
 
   return (
@@ -37,7 +42,7 @@ export default function MenuScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Validación 7: Mensaje de error visual directo en pantalla */}
+      {/* Validación: Mensaje de error visual directo en pantalla */}
       {errorMsg ? (
         <View style={st.errorBox}>
           <Text style={st.errorText}>⚠️ {errorMsg}</Text>

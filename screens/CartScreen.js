@@ -1,10 +1,10 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useContext } from 'react';
-import { Alert, FlatList, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Ctx } from '../context/AppContext';
 
 export default function CartScreen({ navigation }) {
-  const { cart, setCart, currentUser, logoutUser } = useContext(Ctx);
+  const { cart, setCart, currentUser, logoutUser, showToast } = useContext(Ctx);
 
   const sub = cart.reduce((s, x) => s + (Number(x.price) || 0) * (Number(x.quantity) || 1), 0);
   const iva = sub * 0.13;
@@ -33,59 +33,29 @@ export default function CartScreen({ navigation }) {
       await AsyncStorage.setItem('@orders', JSON.stringify(arr));
       setCart([]);
       
-      if (Platform.OS === 'web') {
-        window.alert('¡Orden guardada y confirmada con éxito!');
-      } else {
-        Alert.alert('Éxito', '¡Orden guardada y confirmada con éxito!');
-      }
+      showToast('¡Orden guardada y confirmada con éxito!');
       
       navigation.navigate('Historial');
     } catch (e) {
       console.error(e);
-      if (Platform.OS === 'web') {
-        window.alert('No se pudo guardar la orden');
-      } else {
-        Alert.alert('Error', 'No se pudo guardar la orden');
-      }
+      showToast('No se pudo guardar la orden');
     }
   };
 
   const confirmOrder = () => {
     if (!cart || cart.length === 0) {
-      if (Platform.OS === 'web') {
-        window.alert('El carrito está vacío');
-      } else {
-        Alert.alert('Atención', 'El carrito está vacío');
-      }
+      showToast('El carrito está vacío');
       return;
     }
 
-    // Si corre en la Web, usamos window.confirm nativo del navegador
-    if (Platform.OS === 'web') {
-      const resp = window.confirm(`Sub: $${sub.toFixed(2)}\nIVA: $${iva.toFixed(2)}\nTotal: $${tot.toFixed(2)}\n\n¿Enviar orden?`);
-      if (resp) {
-        save();
-      }
-    } else {
-      // Comportamiento nativo para dispositivos móviles (Android / iOS)
-      Alert.alert(
-        'Confirmar Orden',
-        `Sub: $${sub.toFixed(2)}\nIVA: $${iva.toFixed(2)}\nTotal: $${tot.toFixed(2)}\n\n¿Enviar orden?`,
-        [
-          { text: 'No', style: 'cancel' },
-          { text: 'Sí', onPress: () => save() }
-        ]
-      );
-    }
+    // Como eliminamos las alertas nativas y de navegador, procesamos y guardamos directamente la orden confirmada
+    save();
   };
 
   return (
     <View style={st.box}>
       <View style={st.userBar}>
         <Text style={st.welcomeText}>👤 Hola, <Text style={st.username}>{currentUser || 'Invitado'}</Text></Text>
-        <TouchableOpacity style={st.logoutButton} onPress={handleLogout}>
-          <Text style={st.logoutText}>Cambiar cuenta</Text>
-        </TouchableOpacity>
       </View>
 
       <View style={{ flex: 1 }}>

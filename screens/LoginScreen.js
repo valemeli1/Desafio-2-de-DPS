@@ -3,7 +3,7 @@ import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-nativ
 import { Ctx } from '../context/AppContext';
 
 export default function LoginScreen({ navigation }) {
-  const { loginUser, registerUser, errorMsg, setErrorMsg } = useContext(Ctx);
+  const { loginUser, registerUser, errorMsg, setErrorMsg, showToast } = useContext(Ctx);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isRegistering, setIsRegistering] = useState(false);
@@ -13,7 +13,7 @@ export default function LoginScreen({ navigation }) {
       // Intenta registrar un nuevo usuario con validaciones estrictas
       const success = registerUser(username, password);
       if (success) {
-        alert('¡Cuenta creada con éxito! Ahora puedes iniciar sesión.');
+        showToast('¡Cuenta creada con éxito! Ahora puedes iniciar sesión.');
         setIsRegistering(false);
         setUsername('');
         setPassword('');
