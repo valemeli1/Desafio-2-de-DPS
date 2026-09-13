@@ -1,56 +1,47 @@
-# Welcome to your Expo app 👋
+# 🦉 Buhitos App - Sistema POS y Gestión de Órdenes
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Link video: https://drive.google.com/drive/folders/19teMNVZJsz6O1dUo4X5Qj9uWCk_0N6es?usp=sharing 
 
-## Get started
+Sistema Integral Punto de Venta (POS) y gestión operativa para restaurantes y bares, diseñado con una arquitectura modular para cubrir el flujo completo entre clientes, personal de barra/cocina y administración.
 
-1. Install dependencies
+---
 
-   ```bash
-   npm install
-   ```
+## 🚀 Características Principales
 
-2. Start the app
+* **Control de Acceso por Roles (RBAC)**: 
+  * **Rol Cliente**: Permite explorar el catálogo dividido por categorías (Alimentos y Tragos), armar el carrito de compras, gestionar cantidades y participar en una ruleta de premios diarios.
+  * **Rol Cajero / Barman (KDS)**: Pantalla de Cocina y Barra en tiempo real que recibe los pedidos para gestionar y actualizar su estatus operativo (*Pendiente*, *En preparación*, *Listo para entregar*, *Pagado*).
+  * **Rol Administrador**: Panel de métricas ejecutivas que calcula ingresos totales, desglosa ventas por método de pago y genera un ranking con los productos más vendidos.
+* **Gamificación (Ruleta Gacha)**: Minijuego diario integrado con límites de uso por sesión para fidelizar a los clientes y otorgar cupones de descuento almacenados localmente.
+* **Persistencia Offline-First**: Utiliza `AsyncStorage` para almacenar carritos, cupones y el historial global de órdenes en formato JSON de manera local en el dispositivo.
 
-   ```bash
-   npx expo start
-   ```
+---
 
-In the output, you'll find options to open the app in a
+## 🛠️ Tecnologías y Librerías Utilizadas
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+* **Framework**: React Native / Expo
+* **Navegación**: React Navigation (Bottom Tabs y Native Stack)
+* **Gestión de Estado**: React Context API (`AppContext`)
+* **Almacenamiento Local**: `@react-native-async-storage/async-storage`
+* **Estilos y Componentes**: StyleSheet nativo y diseño optimizado en modo oscuro (*Dark Mode*).
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+---
 
-## Get a fresh project
+## 📂 Estructura del Proyecto
 
-When you're ready, run:
-
-```bash
-npm run reset-project
-```
-
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
-### Other setup steps
-
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+```text
+buhitosrestaurant-app/
+│
+├── App.js                  # Componente raíz y enrutador principal con navegación condicional por roles
+├── context/
+│   └── AppContext.js       # Cerebro global (estado de órdenes, carrito, autenticación y roles)
+├── components/
+│   ├── RoleSelector.js     # Barra superior para alternar dinámicamente entre Cliente, Cajero y Admin
+│   ├── RouletteModal.js    # Componente interactivo de la Ruleta Gacha con límite diario
+│   └── Toast.js            # Sistema de notificaciones flotantes globales
+└── screens/
+    ├── MenuScreen.js       # Catálogo de alimentos, tragos y control de cantidades
+    ├── CartScreen.js       # Gestión del carrito, tipos de orden y métodos de pago
+    ├── HistoryScreen.js    # Historial de cupones y órdenes del usuario
+    ├── KDSScreen.js        # Kitchen Display System para control de barra y cocina en tiempo real
+    └── AdminScreen.js      # Panel de inteligencia de negocio y métricas (con métodos .reduce y .sort)
