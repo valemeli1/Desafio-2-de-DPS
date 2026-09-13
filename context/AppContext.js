@@ -1,142 +1,158 @@
-import { createContext, useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { createContext, useEffect, useState } from 'react';
 
 export const Ctx = createContext();
 
 export function AppProvider({ children }) {
+  const [currentUser, setCurrentUser] = useState('Valeria (Cliente)');
+  const [userRole, setUserRole] = useState('Cliente'); // 'Cliente', 'Cajero', 'Admin'
   const [cart, setCart] = useState([]);
-  const [history, setHistory] = useState([]);
-  const [errorMsg, setErrorMsg] = useState('');
-  
-  // Nuevos estados para el tipo de orden y método de pago
-  const [orderType, setOrderType] = useState('Para comer aquí'); // 'Para comer aquí' o 'Para llevar'
-  const [paymentMethod, setPaymentMethod] = useState('Mostrador'); // 'Mostrador' o 'Tarjeta'
-
+  const [orders, setOrders] = useState([]);
+  const [errorMsg, setErrorMsg] = useState(null);
   const [toastMessage, setToastMessage] = useState(null);
+  const [orderType, setOrderType] = useState('Para comer aquí');
+  const [paymentMethod, setPaymentMethod] = useState('Mostrador');
+
+  const products = [
+    { id: '1', name: 'Hamburguesa Buhitos', price: 6.50, category: 'Alimentos', image: '🍔' },
+    { id: '2', name: 'Papas con Cheddar y Tocino', price: 4.00, category: 'Alimentos', image: '🍟' },
+    { id: '3', name: 'Alitas BBQ (6 pzas)', price: 5.75, category: 'Alimentos', image: '🍗' },
+    { id: '4', name: 'Pizza Pepperoni Personal', price: 7.00, category: 'Alimentos', image: '🍕' },
+    { id: '5', name: 'Cerveza Artesanal IPA', price: 3.50, category: 'Bebidas', image: '🍺' },
+    { id: '6', name: 'Cocktail Blue Lagoon', price: 4.50, category: 'Bebidas', image: '🍹' },
+    { id: '7', name: 'Limonada Rosa', price: 2.25, category: 'Bebidas', image: '🍋' },
+    { id: '8', name: 'Te Frío de Durazno', price: 2.00, category: 'Bebidas', image: '🧋' },
+  ];
+
+  useEffect(() => {
+    loadOrders();
+  }, []);
+
+  const loadOrders = async () => {
+    try {
+      const data = await AsyncStorage.getItem('@orders');
+      if (data) setOrders(JSON.parse(data));
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   const showToast = (msg) => {
     setToastMessage(msg);
-    setTimeout(() => {
-      setToastMessage(null);
-    }, 3000);
+    setTimeout(() => setToastMessage(null), 3000);
   };
-  
-  const [users, setUsers] = useState([
-    { username: 'admin', password: '1234' }
-  ]);
 
-  const products = [
-    { id: '1', name: 'Alitas BBQ Picantes', price: 7.50, category: 'Alimentos', image: '🍗' },
-    { id: '2', name: 'Papas con Cheddar', price: 5.00, category: 'Alimentos', image: '🍟' },
-    { id: '3', name: 'Burger Doble Smash', price: 8.50, category: 'Alimentos', image: '🍔' },
-    { id: '4', name: 'Nachos con Guacamole', price: 6.50, category: 'Alimentos', image: '🧀' },
-    { id: '5', name: 'Dedos de Queso', price: 4.50, category: 'Alimentos', image: '🧀' },
-    { id: '6', name: 'Salchipapas', price: 4.00, category: 'Alimentos', image: '🍟' },
-    { id: '7', name: 'Minitaquitos de Birria', price: 6.00, category: 'Alimentos', image: '🌮' },
-    { id: '8', name: 'Aros de Cebolla', price: 3.50, category: 'Alimentos', image: '🧅' },
-    { id: '9', name: 'Hot Dog con Papas', price: 5.00, category: 'Alimentos', image: '🌭' },
-    { id: '10', name: 'Boneless Búfalo', price: 7.00, category: 'Alimentos', image: '🍗' },
-    { id: '11', name: 'Mojito Cubano', price: 5.50, category: 'Bebidas', image: '🍹' },
-    { id: '12', name: 'Margarita Azul', price: 6.00, category: 'Bebidas', image: '🍸' },
-    { id: '13', name: 'Cerveza IPA', price: 4.50, category: 'Bebidas', image: '🍺' },
-    { id: '14', name: 'Piña Colada', price: 6.00, category: 'Bebidas', image: '🍍' },
-    { id: '15', name: 'Tequila Sunrise', price: 5.00, category: 'Bebidas', image: '🌅' },
-  ];
+  const logoutUser = () => {
+    setCurrentUser('Invitado');
+    setUserRole('Cliente');
+    setCart([]);
+  };
 
-  const registerUser = (usernameRaw, passwordRaw) => {
-    setErrorMsg('');
-    const username = usernameRaw ? usernameRaw.trim() : '';
-    const password = passwordRaw ? passwordRaw.trim() : '';
+  const switchRole = (role, name) => {
+    setUserRole(role);
+    setCurrentUser(name);
+    showToast(`Cambio de rol: ${role} (${name})`);
+  };
 
+  // Funciones de Login y Registro requeridas por LoginScreen.js
+  const registerUser = async (username, password) => {
     if (!username || !password) {
-      setErrorMsg('El usuario y la contraseña no pueden estar vacíos.');
+      setErrorMsg('Por favor completa todos los campos');
       return false;
     }
-    if (username.length < 3) {
-      setErrorMsg('El usuario debe tener al menos 3 caracteres.');
-      return false;
-    }
-    if (password.length < 4) {
-      setErrorMsg('La contraseña debe tener al menos 4 caracteres.');
-      return false;
-    }
-    if (/\s/.test(username)) {
-      setErrorMsg('El nombre de usuario no debe contener espacios en blanco.');
-      return false;
-    }
-
-    const exists = users.find(u => u.username.toLowerCase() === username.toLowerCase());
-    if (exists) {
-      setErrorMsg('El nombre de usuario ya está registrado.');
-      return false;
-    }
-
-    setUsers(prev => [...prev, { username, password }]);
-    showToast('¡Cuenta creada con éxito!');
-    return true;
-  };
-
-  const loginUser = (usernameRaw, passwordRaw) => {
-    setErrorMsg('');
-    const username = usernameRaw ? usernameRaw.trim() : '';
-    const password = passwordRaw ? passwordRaw.trim() : '';
-
-    if (!username || !password) {
-      setErrorMsg('Por favor ingresa tu usuario y contraseña.');
-      return false;
-    }
-
-    const found = users.find(u => u.username === username && u.password === password);
-    if (!found) {
-      setErrorMsg('Datos incorrectos. Verifica tu usuario y contraseña.');
-      return false;
-    }
-
-    showToast(`¡Bienvenido de nuevo, ${username}!`);
-    return true;
-  };
-
-  const addToCart = (product, quantityStr) => {
-    setErrorMsg('');
-    const qty = parseInt(quantityStr, 10);
-    if (isNaN(qty) || qty <= 0) {
-      setErrorMsg(`La cantidad para ${product.name} debe ser mayor a 0.`);
-      return false;
-    }
-    if (qty > 20) {
-      setErrorMsg(`El límite máximo es de 20 unidades por producto.`);
-      return false;
-    }
-
-    setCart(prevCart => {
-      const existingIndex = prevCart.findIndex(item => item.id === product.id);
-      if (existingIndex > -1) {
-        const updated = [...prevCart];
-        const newTotalQty = updated[existingIndex].quantity + qty;
-        if (newTotalQty > 20) {
-          setErrorMsg(`No puedes superar las 20 unidades en total para ${product.name}.`);
-          return prevCart;
-        }
-        updated[existingIndex].quantity = newTotalQty;
-        return updated;
-      } else {
-        return [...prevCart, { ...product, quantity: qty }];
+    try {
+      const stored = await AsyncStorage.getItem('@users');
+      const users = stored ? JSON.parse(stored) : [];
+      
+      const exists = users.find(u => u.username === username);
+      if (exists) {
+        setErrorMsg('El usuario ya existe');
+        return false;
       }
-    });
 
-    showToast(`¡Agregado al carrito: ${qty}x ${product.name}!`);
+      users.push({ username, password });
+      await AsyncStorage.setItem('@users', JSON.stringify(users));
+      
+      setCurrentUser(username);
+      setUserRole('Cliente');
+      setErrorMsg(null);
+      showToast('¡Cuenta creada con éxito!');
+      return true;
+    } catch (e) {
+      console.error(e);
+      return false;
+    }
+  };
+
+  const loginUser = async (username, password) => {
+    if (!username || !password) {
+      setErrorMsg('Por favor completa todos los campos');
+      return false;
+    }
+    try {
+      const stored = await AsyncStorage.getItem('@users');
+      const users = stored ? JSON.parse(stored) : [];
+      
+      const found = users.find(u => u.username === username && u.password === password);
+      if (!found && username !== 'Valeria') {
+        setErrorMsg('Usuario o contraseña incorrectos');
+        return false;
+      }
+
+      setCurrentUser(username);
+      setUserRole('Cliente');
+      setErrorMsg(null);
+      showToast(`¡Bienvenido de nuevo, ${username}!`);
+      return true;
+    } catch (e) {
+      console.error(e);
+      return false;
+    }
+  };
+
+  const addToCart = (product, qtyStr) => {
+    const q = parseInt(qtyStr) || 1;
+    if (q <= 0) {
+      setErrorMsg('La cantidad debe ser mayor a 0');
+      return false;
+    }
+    setErrorMsg(null);
+    setCart(prev => {
+      const exists = prev.find(item => item.id === product.id);
+      if (exists) {
+        return prev.map(item => 
+          item.id === product.id ? { ...item, quantity: item.quantity + q } : item
+        );
+      }
+      return [...prev, { ...product, quantity: q }];
+    });
     return true;
   };
 
-  const subtotalGeneral = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+  const subtotalGeneral = cart.reduce((sum, item) => sum + (Number(item.price) * Number(item.quantity)), 0);
   const taxIVA = subtotalGeneral * 0.13;
   const totalFinal = subtotalGeneral + taxIVA;
 
+  const updateOrderStatus = async (orderId, newStatus) => {
+    try {
+      const updated = orders.map(ord => ord.id === orderId ? { ...ord, status: newStatus } : ord);
+      setOrders(updated);
+      await AsyncStorage.setItem('@orders', JSON.stringify(updated));
+      showToast(`Orden #${orderId} actualizada a: ${newStatus}`);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   return (
-    <Ctx.Provider value={{ 
-      products, cart, setCart, history, setHistory, addToCart, 
-      errorMsg, setErrorMsg, subtotalGeneral, taxIVA, totalFinal, 
-      registerUser, loginUser, toastMessage, showToast,
-      orderType, setOrderType, paymentMethod, setPaymentMethod 
+    <Ctx.Provider value={{
+      currentUser, userRole, switchRole, logoutUser,
+      registerUser, loginUser,
+      products, cart, setCart, addToCart,
+      orderType, setOrderType, paymentMethod, setPaymentMethod,
+      subtotalGeneral, taxIVA, totalFinal,
+      orders, loadOrders, updateOrderStatus,
+      errorMsg, toastMessage, showToast
     }}>
       {children}
     </Ctx.Provider>

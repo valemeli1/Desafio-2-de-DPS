@@ -1,11 +1,13 @@
 import { useContext, useState } from 'react';
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import RouletteModal from '../components/RouletteModal';
 import { Ctx } from '../context/AppContext';
 
 export default function MenuScreen() {
   const { products, addToCart, errorMsg, showToast } = useContext(Ctx);
   const [tab, setTab] = useState('Alimentos');
   const [qtys, setQtys] = useState({});
+  const [showRoulette, setShowRoulette] = useState(false);
 
   // Filtra según la categoría del contexto ('Alimentos' o 'Bebidas')
   const list = products.filter(x => x.category === tab);
@@ -78,12 +80,29 @@ export default function MenuScreen() {
           </View>
         )}
       />
+
+      {/* Botón Flotante de la Ruleta Gacha */}
+      <TouchableOpacity 
+        style={st.floatingRouletteBtn} 
+        onPress={() => setShowRoulette(true)}
+        activeOpacity={0.8}
+      >
+        <Text style={{ fontSize: 20 }}>🎰</Text>
+        <Text style={st.rouletteBtnTxt}>Ruleta Gacha</Text>
+      </TouchableOpacity>
+
+      {/* Modal de la Ruleta */}
+      <RouletteModal 
+        visible={showRoulette} 
+        onClose={() => setShowRoulette(false)} 
+        showToast={showToast} 
+      />
     </View>
   );
 }
 
 const st = StyleSheet.create({
-  box: { flex: 1, backgroundColor: '#121212', paddingBottom: 10 },
+  box: { flex: 1, backgroundColor: '#121212', paddingBottom: 10, position: 'relative' },
   tabs: { flexDirection: 'row', justifyContent: 'center', backgroundColor: '#1e1e1e', paddingVertical: 12 },
   btnT: { paddingVertical: 8, paddingHorizontal: 20, borderRadius: 20, marginHorizontal: 5, backgroundColor: '#2c2c2c' },
   act: { backgroundColor: '#e67e22' },
@@ -102,5 +121,28 @@ const st = StyleSheet.create({
   btxt: { fontSize: 16, fontWeight: 'bold', color: '#fff' },
   qtxt: { marginHorizontal: 8, fontSize: 14, fontWeight: '600', color: '#fff' },
   add: { backgroundColor: '#d35400', paddingVertical: 6, paddingHorizontal: 12, borderRadius: 5 },
-  atxt: { color: '#fff', fontWeight: 'bold', fontSize: 13 }
+  atxt: { color: '#fff', fontWeight: 'bold', fontSize: 13 },
+  floatingRouletteBtn: {
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+    backgroundColor: '#d35400',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    borderRadius: 30,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+    zIndex: 99
+  },
+  rouletteBtnTxt: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 13,
+    marginLeft: 6
+  }
 });
